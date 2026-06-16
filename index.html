@@ -459,7 +459,7 @@
 
     .lightbox.open {
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: auto 1fr auto auto;
       gap: 12px;
     }
 
@@ -491,6 +491,8 @@
       display: grid;
       place-items: center;
       position: relative;
+      overflow: hidden;
+      touch-action: none;
     }
 
     .lightbox-img {
@@ -500,6 +502,16 @@
       border-radius: 18px;
       background: #fff;
       box-shadow: 0 16px 42px rgba(0, 0, 0, .34);
+      transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(var(--zoom, 1));
+      transition: transform .12s ease;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .lightbox-img.dragging {
+      cursor: grabbing;
+      transition: none;
     }
 
     .lightbox-caption {
@@ -523,6 +535,32 @@
 
     .lightbox-controls button {
       pointer-events: auto;
+    }
+
+    .zoom-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .zoom-controls button,
+    .zoom-value {
+      border: 0;
+      border-radius: 999px;
+      min-height: 40px;
+      padding: 0 16px;
+      background: rgba(255, 255, 255, .92);
+      color: var(--ink);
+      font-weight: 900;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .18);
+    }
+
+    .zoom-value {
+      display: grid;
+      place-items: center;
+      min-width: 76px;
+      font-size: 13px;
     }
 
     @media (min-width: 650px) {
@@ -572,7 +610,7 @@
       <ul>
         <li><b>6/20 植物园太挤：</b>改走“铁路文化公园 → 鸿山公园/鸿山寺 → 钟鼓索道”。交通：如家打车到铁路文化公园约10分钟，铁路文化公园到鸿山公园步行/短打车，鸿山公园到钟鼓索道打车约10分钟。</li>
         <li><b>6/20 沙坡尾艺术西区太挤：</b>改走“沙坡尾避风坞外线 → 大学路 → 民族路”。交通：厦大/南普陀打车到沙坡尾，后面全程步行。</li>
-        <li><b>6/20 白城沙滩太挤：</b>改去“珍珠湾海边”。交通：演武大桥/沙坡尾打车到珍珠湾约10-15分钟，珍珠湾回中山路打车约20-30分钟。</li>
+        <li><b>6/20 黄厝沙滩太挤：</b>改去“珍珠湾海边/音乐广场海边短停”。交通：演武大桥/沙坡尾打车到珍珠湾约10-15分钟，珍珠湾回中山路打车约20-30分钟。</li>
         <li><b>6/21 鼓浪屿核心点太挤：</b>最美转角只快速拍照，改走“安海路 → 笔山路 → 鼓新路 → 复兴路 → 港仔后沙滩”。交通：全程步行，少去龙头路中心区久待。</li>
         <li><b>6/21 菽庄花园排队太久：</b>改“港仔后沙滩 → 皓月园外线 → 海边咖啡 → 回安屿1920”。交通：步行为主，必要时坐岛上电瓶车。</li>
         <li><b>6/22 十里长堤太挤：</b>缩短停留，改“龙舟池 → 嘉庚建筑群外观 → 石鼓路 → 全季机场店”。交通：集美内部步行，回全季打车。</li>
@@ -606,6 +644,12 @@
       </div>
     </div>
     <div class="lightbox-caption" id="lightbox-caption"></div>
+    <div class="zoom-controls" aria-label="图片缩放">
+      <button id="zoom-out" type="button">－</button>
+      <span class="zoom-value" id="zoom-value">100%</span>
+      <button id="zoom-in" type="button">＋</button>
+      <button id="zoom-reset" type="button">还原</button>
+    </div>
   </div>
 
   <script>
@@ -664,12 +708,12 @@
         id: "d0620",
         date: "6/20",
         title: "岛内核心 + 钟鼓索道",
-        subtitle: "固定路线：厦大 + 沙坡尾 + 白城，不去黄厝",
+        subtitle: "固定路线：厦大 + 沙坡尾 + 黄厝",
         wake: "建议06:50起床，07:30出门",
         accent: "#66c5d4",
         soft: "#d8f4f7",
         slot: "#c8eef3",
-        route: ["如家", "植物园", "钟鼓索道", "南普陀", "厦门大学", "沙坡尾", "艺术西区", "演武大桥", "白城", "如家"],
+        route: ["如家", "植物园", "钟鼓索道", "南普陀", "厦门大学", "沙坡尾", "艺术西区", "演武大桥", "黄厝", "如家"],
         spots: [
           {
             name: "如家 → 植物园西门",
@@ -742,20 +786,20 @@
             placeholder: "后续可补：观景平台入口、最佳拍照方向。"
           },
           {
-            name: "演武大桥 → 白城沙滩",
+            name: "演武大桥 → 黄厝沙滩",
             tag: "建议去",
             tagType: "must",
-            traffic: "步行约10-15分钟",
-            image: "白城沙滩占位图",
-            text: "白城沙滩是这天固定海边点，不去黄厝。傍晚走一段就好，不要在海边拖太晚。",
+            traffic: "打车约20-30分钟",
+            image: "黄厝沙滩占位图",
+            text: "黄厝是这天固定海边点，比白城更适合傍晚海边散步和拍照。不要在海边拖太晚，留时间回中山路吃饭。",
             food: "晚餐回八市/中山路。",
-            placeholder: "后续可补：白城日落机位、海边照片。"
+            placeholder: "后续可补：黄厝日落机位、海边照片、入口定位。"
           },
           {
-            name: "白城沙滩 → 八市/中山路 → 如家",
+            name: "黄厝沙滩 → 八市/中山路 → 如家",
             tag: "必走",
             tagType: "must",
-            traffic: "白城到八市/中山路打车约20-30分钟；饭后步行或短打车回如家",
+            traffic: "黄厝到八市/中山路打车约30-45分钟；饭后步行或短打车回如家",
             gallery: zhongshanGallery,
             text: "晚餐回中山路或八市区域，吃完回如家休息。",
             food: "海鲜、沙茶面、姜母鸭、花生汤、烧肉粽都可以。",
@@ -1052,13 +1096,52 @@
     const prevBtn = document.querySelector("#lightbox-prev");
     const nextBtn = document.querySelector("#lightbox-next");
     const stage = document.querySelector("#lightbox-stage");
+    const zoomInBtn = document.querySelector("#zoom-in");
+    const zoomOutBtn = document.querySelector("#zoom-out");
+    const zoomResetBtn = document.querySelector("#zoom-reset");
+    const zoomValue = document.querySelector("#zoom-value");
 
     let activeGalleryId = null;
     let activeIndex = 0;
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragBaseX = 0;
+    let dragBaseY = 0;
+
+    function applyZoom() {
+      lightboxImg.style.setProperty("--zoom", zoom);
+      lightboxImg.style.setProperty("--pan-x", `${panX}px`);
+      lightboxImg.style.setProperty("--pan-y", `${panY}px`);
+      zoomValue.textContent = `${Math.round(zoom * 100)}%`;
+    }
+
+    function resetZoom() {
+      zoom = 1;
+      panX = 0;
+      panY = 0;
+      applyZoom();
+    }
+
+    function changeZoom(delta) {
+      const next = Math.min(4, Math.max(1, Number((zoom + delta).toFixed(2))));
+      if (next === 1) {
+        zoom = 1;
+        panX = 0;
+        panY = 0;
+      } else {
+        zoom = next;
+      }
+      applyZoom();
+    }
 
     function openLightbox(galleryId, index) {
       activeGalleryId = galleryId;
       activeIndex = index;
+      resetZoom();
       renderLightbox();
       lightbox.classList.add("open");
       lightbox.setAttribute("aria-hidden", "false");
@@ -1070,6 +1153,7 @@
       lightbox.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
       lightboxImg.removeAttribute("src");
+      resetZoom();
     }
 
     function renderLightbox() {
@@ -1077,6 +1161,7 @@
       if (!list.length) return;
       activeIndex = (activeIndex + list.length) % list.length;
       const photo = list[activeIndex];
+      resetZoom();
       lightboxImg.src = photo.src;
       lightboxImg.alt = photo.caption || "照片预览";
       lightboxCaption.textContent = photo.caption || "";
@@ -1098,6 +1183,44 @@
     closeBtn.addEventListener("click", closeLightbox);
     prevBtn.addEventListener("click", () => moveLightbox(-1));
     nextBtn.addEventListener("click", () => moveLightbox(1));
+    zoomInBtn.addEventListener("click", () => changeZoom(.25));
+    zoomOutBtn.addEventListener("click", () => changeZoom(-.25));
+    zoomResetBtn.addEventListener("click", resetZoom);
+
+    stage.addEventListener("wheel", (event) => {
+      if (!lightbox.classList.contains("open")) return;
+      event.preventDefault();
+      changeZoom(event.deltaY < 0 ? .15 : -.15);
+    }, { passive: false });
+
+    lightboxImg.addEventListener("pointerdown", (event) => {
+      if (zoom <= 1) return;
+      isDragging = true;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+      dragBaseX = panX;
+      dragBaseY = panY;
+      lightboxImg.classList.add("dragging");
+      lightboxImg.setPointerCapture(event.pointerId);
+    });
+
+    lightboxImg.addEventListener("pointermove", (event) => {
+      if (!isDragging) return;
+      panX = dragBaseX + event.clientX - dragStartX;
+      panY = dragBaseY + event.clientY - dragStartY;
+      applyZoom();
+    });
+
+    function endDrag(event) {
+      if (!isDragging) return;
+      isDragging = false;
+      lightboxImg.classList.remove("dragging");
+      try { lightboxImg.releasePointerCapture(event.pointerId); } catch {}
+    }
+
+    lightboxImg.addEventListener("pointerup", endDrag);
+    lightboxImg.addEventListener("pointercancel", endDrag);
+
     lightbox.addEventListener("click", (event) => {
       if (event.target === lightbox || event.target === stage) closeLightbox();
     });
@@ -1106,6 +1229,9 @@
       if (event.key === "Escape") closeLightbox();
       if (event.key === "ArrowLeft") moveLightbox(-1);
       if (event.key === "ArrowRight") moveLightbox(1);
+      if (event.key === "+" || event.key === "=") changeZoom(.25);
+      if (event.key === "-" || event.key === "_") changeZoom(-.25);
+      if (event.key === "0") resetZoom();
     });
   </script>
 </body>
